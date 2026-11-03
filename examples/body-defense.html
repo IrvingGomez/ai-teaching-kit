@@ -1,0 +1,1019 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Body Defense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Light: a stained tissue slide (eosin pink, hematoxylin purple) */
+  --bg: #F6EEF3;
+  --surface: #FFFAFC;
+  --ink: #2B1E3F;
+  --muted: #6B5A7E;
+  --line: #E4D3DF;
+  --accent: #6B3FA0;
+  --accent-ink: #FFFFFF;
+  --tissue: #F4DCE6;
+  --tissue-cell: #EDC9D8;
+  --nucleus: #C2A6D3;
+  --skin: #E6B3C5;
+  --vessel: #EDB2C0;
+  --rbc: #C8455E;
+  --node: #E2D2EE;
+  --germ: #23824A;
+  --neut: #2D68AE;
+  --macro: #B0601A;
+  --dend: #8A3FB8;
+  --bcell: #A97C00;
+  --ab: #B98A00;
+  --glow: 0;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Dark: fluorescence microscopy, stained cells glowing on a dark field */
+    --bg: #0F0A17;
+    --surface: #181124;
+    --ink: #EEE7F8;
+    --muted: #A797BF;
+    --line: #2F2542;
+    --accent: #B98CFF;
+    --accent-ink: #160E22;
+    --tissue: #130E1D;
+    --tissue-cell: #1C1530;
+    --nucleus: #2C2452;
+    --skin: #2A1D3A;
+    --vessel: #2E1220;
+    --rbc: #9E3048;
+    --node: #251B3A;
+    --germ: #4BE37A;
+    --neut: #5AAEFF;
+    --macro: #FF9F43;
+    --dend: #D990FF;
+    --bcell: #FFD23F;
+    --ab: #FFE066;
+    --glow: 1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F0A17; --surface: #181124; --ink: #EEE7F8; --muted: #A797BF; --line: #2F2542;
+  --accent: #B98CFF; --accent-ink: #160E22; --tissue: #130E1D; --tissue-cell: #1C1530;
+  --nucleus: #2C2452; --skin: #2A1D3A; --vessel: #2E1220; --rbc: #9E3048; --node: #251B3A;
+  --germ: #4BE37A; --neut: #5AAEFF; --macro: #FF9F43; --dend: #D990FF; --bcell: #FFD23F;
+  --ab: #FFE066; --glow: 1; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { font-size: 16px; }
+html.teacher { font-size: 20px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.45;
+}
+.wrap { max-width: 1320px; margin: 0 auto; padding: 16px; }
+
+header {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: 12px 24px; margin-bottom: 14px;
+}
+h1 { margin: 0; font-size: 2.1rem; line-height: 1.1; letter-spacing: -0.01em; }
+.sub { margin: 4px 0 0; color: var(--muted); max-width: 60ch; }
+
+.seg { display: inline-flex; border: 1.5px solid var(--accent); border-radius: 999px; overflow: hidden; }
+.seg button {
+  font: inherit; font-size: 0.95rem; border: 0; background: transparent; color: var(--accent);
+  padding: 6px 14px; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+
+.banner {
+  display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap;
+  padding: 12px 16px; margin-bottom: 14px;
+  border-left: 5px solid var(--accent); background: var(--surface); border-radius: 0 10px 10px 0;
+}
+.banner strong { font-size: 1.25rem; }
+.banner span { color: var(--ink); max-width: 75ch; }
+
+.main { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); gap: 16px; align-items: start; }
+.stage { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--tissue); }
+#tissue { display: block; width: 100%; height: auto; cursor: crosshair; touch-action: manipulation; }
+.hint { position: absolute; left: 12px; bottom: 10px; font-size: 0.8rem; color: var(--muted); pointer-events: none; }
+
+.info {
+  position: absolute; left: 12px; right: 12px; bottom: 12px; max-width: 420px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px 40px 12px 14px; box-shadow: 0 6px 24px rgba(43, 30, 63, 0.18);
+}
+.info[hidden] { display: none; }
+.info h3 { margin: 0 0 4px; font-size: 1.05rem; }
+.info p { margin: 0; font-size: 0.95rem; }
+.info .close {
+  position: absolute; top: 6px; right: 6px; width: 30px; height: 30px; border: 0; border-radius: 50%;
+  background: transparent; color: var(--muted); font-size: 1.2rem; cursor: pointer;
+}
+
+.side { display: flex; flex-direction: column; gap: 14px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+
+.readout { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
+.day { font-size: 2.6rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.day small { font-size: 0.95rem; font-weight: 400; color: var(--muted); margin-left: 4px; }
+.counts { display: flex; gap: 16px; font-variant-numeric: tabular-nums; }
+.counts div { display: flex; flex-direction: column; font-size: 0.85rem; color: var(--muted); }
+.counts b { font-size: 1.3rem; color: var(--ink); }
+
+.chart-key { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.85rem; color: var(--muted); margin: 0 0 6px; padding: 0; list-style: none; }
+.chart-key li { display: inline-flex; align-items: center; gap: 6px; }
+.chart-key i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; }
+.chart-key i.dash { border-top-style: dashed; opacity: 0.6; }
+#chart { display: block; width: 100%; height: 220px; }
+html.teacher #chart { height: 260px; }
+
+.controls { display: grid; gap: 12px; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  font: inherit; font-size: 1rem; padding: 9px 16px; border-radius: 10px; cursor: pointer;
+  border: 1.5px solid var(--accent); background: transparent; color: var(--accent);
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); font-weight: 700; min-width: 7.5em; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.field { display: grid; gap: 4px; }
+.field-top { display: flex; justify-content: space-between; gap: 8px; }
+.field output { font-weight: 700; }
+.field .seg { justify-self: start; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.check { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+.check input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent); }
+.note { font-size: 0.8rem; color: var(--muted); }
+
+.legend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
+.legend button {
+  width: 100%; display: flex; align-items: center; gap: 8px; text-align: left;
+  font: inherit; font-size: 0.92rem; color: var(--ink); background: transparent; border: 0;
+  padding: 5px 6px; border-radius: 8px; cursor: pointer;
+}
+.legend button:hover { background: var(--bg); }
+.legend svg { flex: none; }
+.legend-group { grid-column: 1 / -1; font-size: 0.82rem; color: var(--muted); margin: 6px 0 0 6px; }
+.legend-group:first-child { margin-top: 0; }
+
+h2 { font-size: 1.15rem; margin: 0 0 8px; }
+
+.tasks { margin-top: 16px; }
+html.teacher .tasks { display: none; }
+.idea { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.idea div { padding: 12px 14px; border-radius: 10px; background: var(--bg); }
+.idea b { display: block; margin-bottom: 2px; }
+.task-list { list-style: none; counter-reset: task; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.task-list li { counter-increment: task; background: var(--bg); border-radius: 10px; padding: 12px 14px; }
+.task-list h3 { margin: 0 0 4px; font-size: 1rem; }
+.task-list h3::before { content: counter(task) ". "; color: var(--accent); }
+.task-list p { margin: 0 0 8px; font-size: 0.95rem; }
+.task-list textarea {
+  width: 100%; min-height: 64px; resize: vertical; font: inherit; font-size: 0.95rem;
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: var(--surface); color: var(--ink);
+}
+
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  h1 { font-size: 1.7rem; }
+}
+@media (max-width: 520px) {
+  .idea { grid-template-columns: 1fr; }
+  .legend { grid-template-columns: 1fr; }
+  .day { font-size: 2.1rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Body Defense</h1>
+      <p class="sub">Watch your immune system fight germs that get in through a cut, then see what changes the second time.</p>
+    </div>
+    <div class="seg" role="group" aria-label="View mode">
+      <button type="button" data-mode="student" aria-pressed="true">Student</button>
+      <button type="button" data-mode="teacher" aria-pressed="false">Teacher (projector)</button>
+    </div>
+  </header>
+
+  <div class="banner" aria-live="polite">
+    <strong id="phaseTitle">Healthy tissue</strong>
+    <span id="phaseText">No germs yet. Press Infect to let germs in through a cut in the skin.</span>
+  </div>
+
+  <div class="main">
+    <div class="stage">
+      <canvas id="tissue" aria-label="Animated view of body tissue with germs and immune cells. Use the legend to learn about each cell."></canvas>
+      <div class="hint" id="hint">Tap any cell to see what it does</div>
+      <div class="info" id="info" hidden role="dialog" aria-labelledby="infoTitle">
+        <button type="button" class="close" id="infoClose" aria-label="Close">×</button>
+        <h3 id="infoTitle"></h3>
+        <p id="infoText"></p>
+      </div>
+    </div>
+
+    <div class="side">
+      <section class="panel">
+        <div class="readout">
+          <div class="day" id="day">–<small>no infection yet</small></div>
+          <div class="counts">
+            <div><b id="germCount">0</b>germs</div>
+            <div><b id="abLevel">0%</b>antibodies</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <ul class="chart-key">
+          <li><i style="border-color: var(--germ)"></i>Germs</li>
+          <li><i style="border-color: var(--ab)"></i>Antibodies</li>
+          <li id="ghostKey" hidden><i class="dash" style="border-color: var(--muted)"></i>Previous infection</li>
+        </ul>
+        <canvas id="chart" aria-label="Graph of germ count and antibody level over days"></canvas>
+      </section>
+
+      <section class="panel controls">
+        <div class="btn-row">
+          <button type="button" class="btn primary" id="infectBtn">Infect</button>
+          <button type="button" class="btn" id="playBtn">Pause</button>
+          <button type="button" class="btn" id="resetBtn">Reset</button>
+        </div>
+        <div class="field">
+          <div class="field-top"><label for="strength">Germ strength</label><output id="strengthOut" for="strength">Medium</output></div>
+          <input type="range" id="strength" min="1" max="5" step="1" value="3">
+          <span class="note">Applies to the next infection.</span>
+        </div>
+        <label class="check">
+          <input type="checkbox" id="vaccinated">
+          <span>Vaccinated before first infection<br><span class="note" id="vaxNote">Gives the body memory cells without getting sick.</span></span>
+        </label>
+        <div class="field">
+          <span>Speed</span>
+          <div class="seg" role="group" aria-label="Speed" id="speedSeg">
+            <button type="button" data-speed="1" aria-pressed="true">1×</button>
+            <button type="button" data-speed="2" aria-pressed="false">2×</button>
+            <button type="button" data-speed="4" aria-pressed="false">4×</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Who's who</h2>
+        <ul class="legend" id="legend"></ul>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel tasks" id="tasks">
+    <h2>Key idea</h2>
+    <div class="idea">
+      <div><b>Innate defense</b>Fast. Attacks every germ the same way. Learns nothing.</div>
+      <div><b>Adaptive defense</b>Slow the first time. Made for one germ only. Remembers it.</div>
+    </div>
+    <h2>Investigate</h2>
+    <ol class="task-list">
+      <li>
+        <h3>Predict first</h3>
+        <p>Before you press Infect, guess what the number of germs will do in the first 3 days. Then infect at Medium strength and watch.</p>
+        <textarea data-task="1" aria-label="Answer to task 1" placeholder="My prediction…"></textarea>
+      </li>
+      <li>
+        <h3>Find the turning point</h3>
+        <p>On what day does the germ count start to fall? Which cells show up around that time?</p>
+        <textarea data-task="2" aria-label="Answer to task 2" placeholder="Day… because…"></textarea>
+      </li>
+      <li>
+        <h3>Get sick again</h3>
+        <p>After the infection clears, press Reinfect. Compare the new curve with the faded one. What changed, and which cells explain it?</p>
+        <textarea data-task="3" aria-label="Answer to task 3" placeholder="The second time…"></textarea>
+      </li>
+      <li>
+        <h3>Test a vaccine</h3>
+        <p>Press Reset, tick “Vaccinated before first infection”, then Infect. How does it compare with a first infection? Why?</p>
+        <textarea data-task="4" aria-label="Answer to task 4" placeholder="With the vaccine…"></textarea>
+      </li>
+      <li>
+        <h3>Weak germs, strong germs</h3>
+        <p>Try Very mild and Very strong germs, pressing Reset between tries. When can the innate defense win on its own? Does that leave memory cells?</p>
+        <textarea data-task="5" aria-label="Answer to task 5" placeholder="Innate defense wins when…"></textarea>
+      </li>
+    </ol>
+  </section>
+</div>
+
+<script id="sim-core">
+// ---- Simulation model (no DOM). Time unit: days. Space: 800 x 560 logical px. ----
+const W = 800, H = 560;
+const TISSUE = { x0: 74, y0: 44, x1: W - 8, y1: H - 8 };
+const WOUND = { x: 440, y: 38 };
+const NODE = { x: 722, y: 486, r: 54 };
+const VESSEL_EDGE = 66;
+const K = 260;                      // max germs the tissue can hold
+const TAG_K = 8;                    // antibody coating rate at 100% antibodies (per day)
+const STRENGTHS = [null,
+  { name: "Very mild",   n0: 2,  r: 0.7 },
+  { name: "Mild",        n0: 6,  r: 1.2 },
+  { name: "Medium",      n0: 10, r: 1.7 },
+  { name: "Strong",      n0: 14, r: 2.0 },
+  { name: "Very strong", n0: 18, r: 2.3 }];
+
+class Sim {
+  constructor(rand) { this.rand = rand || Math.random; this.nextId = 1; this.reset(false); }
+  rnd(a, b) { return a + (b - a) * this.rand(); }
+  id() { return this.nextId++; }
+
+  reset(vaccinated) {
+    this.t = 0; this.state = "idle";
+    this.germs = []; this.neut = []; this.macro = []; this.dend = [];
+    this.bcells = []; this.abs = []; this.memory = []; this.effects = [];
+    this.hasMemory = !!vaccinated; this.vaccinated = !!vaccinated;
+    this.A = vaccinated ? 4 : 0;
+    this.history = []; this.ghost = null; this.infections = 0;
+    this.memoryRun = false; this.antigenAt = -1; this.adaptiveAt = -1; this.clearedAt = -1;
+    this.lastRec = -1; this.rate = 1.7; this.acc = { neut: 0, macro: 0 }; this.dendSent = false;
+    if (vaccinated) this.addMemoryCells(5);
+  }
+
+  addMemoryCells(n) {
+    for (let i = 0; i < n; i++) {
+      this.memory.push({ id: this.id(), x: NODE.x + this.rnd(-90, 30), y: NODE.y + this.rnd(-110, -40), vx: 0, vy: 0, born: this.t });
+    }
+  }
+
+  infect(level) {
+    if (this.state === "active") return false;
+    const s = STRENGTHS[level] || STRENGTHS[3];
+    if (this.history.length) this.ghost = { history: this.history, adaptiveAt: this.adaptiveAt, memoryRun: this.memoryRun };
+    this.history = []; this.t = 0; this.lastRec = -1;
+    this.state = "active"; this.infections++;
+    this.rate = s.r;
+    this.memoryRun = this.hasMemory;
+    this.antigenAt = -1; this.clearedAt = -1;
+    this.adaptiveAt = this.memoryRun ? 1.0 : -1;   // memory B cells react within about a day
+    this.acc = { neut: 0, macro: 0 }; this.dendSent = false;
+    for (let i = 0; i < s.n0; i++) {
+      this.germs.push({ id: this.id(), x: WOUND.x + this.rnd(-14, 14), y: WOUND.y + this.rnd(4, 16),
+        vx: this.rnd(-25, 25), vy: this.rnd(50, 110), a: this.rnd(0, Math.PI), tagged: false, dead: false });
+    }
+    this.record(true);
+    return true;
+  }
+
+  get adaptiveOn() { return this.state === "active" && this.adaptiveAt >= 0 && this.t >= this.adaptiveAt; }
+
+  step(dt) { while (dt > 1e-9) { const h = Math.min(dt, 0.02); this._step(h); dt -= h; } }
+
+  bounce(o) {
+    if (o.x < TISSUE.x0) { o.x = TISSUE.x0; o.vx = Math.abs(o.vx); }
+    if (o.x > TISSUE.x1) { o.x = TISSUE.x1; o.vx = -Math.abs(o.vx); }
+    if (o.y < TISSUE.y0) { o.y = TISSUE.y0; o.vy = Math.abs(o.vy); }
+    if (o.y > TISSUE.y1) { o.y = TISSUE.y1; o.vy = -Math.abs(o.vy); }
+  }
+
+  drift(o, h, kick, maxV) {
+    o.vx += this.rnd(-1, 1) * kick * h; o.vy += this.rnd(-1, 1) * kick * h;
+    const v = Math.hypot(o.vx, o.vy);
+    if (v > maxV) { o.vx *= maxV / v; o.vy *= maxV / v; }
+    o.x += o.vx * h; o.y += o.vy * h;
+    this.bounce(o);
+  }
+
+  moveToward(o, tx, ty, speed, h) {
+    const dx = tx - o.x, dy = ty - o.y, d = Math.hypot(dx, dy);
+    if (d < 1e-6) return 0;
+    const s = Math.min(d, speed * h);
+    o.x += dx / d * s; o.y += dy / d * s;
+    o.vx = dx / d * speed * 0.3; o.vy = dy / d * speed * 0.3;
+    return d - s;
+  }
+
+  nearestGerm(o, preferTagged) {
+    let best = null, bd = Infinity;
+    for (const g of this.germs) {
+      if (g.dead) continue;
+      let d = (g.x - o.x) ** 2 + (g.y - o.y) ** 2;
+      if (preferTagged && g.tagged) d *= 0.25;
+      if (d < bd) { bd = d; best = g; }
+    }
+    return best;
+  }
+
+  kill(g, kind) {
+    if (g.dead) return;
+    g.dead = true;
+    this.effects.push({ x: g.x, y: g.y, t0: this.t, kind });
+  }
+
+  hunt(c, h, speed, digest) {
+    if (c.digest > 0) { c.digest -= h; this.drift(c, h, 300, 20); return; }
+    if (!c.target || c.target.dead || this.t - c.retarget > 0.15) { c.target = this.nearestGerm(c, true); c.retarget = this.t; }
+    if (c.target) {
+      const left = this.moveToward(c, c.target.x, c.target.y, speed, h);
+      if (left < 11) {
+        c.digest = c.target.tagged ? digest * 0.4 : digest;
+        c.eaten++;
+        this.kill(c.target, "eaten");
+        c.target = null;
+      }
+    } else {
+      this.drift(c, h, 400, 50);
+    }
+  }
+
+  _step(h) {
+    this.t += h;
+    const t = this.t, active = this.state === "active";
+    const N = this.germs.length;
+
+    // Germs: wander, divide (unless coated with antibodies), get coated, get neutralized
+    const born = [];
+    const growth = this.rate * (1 - N / K);
+    const tagRate = this.A / 100 * TAG_K;
+    for (const g of this.germs) {
+      if (g.vy > 30) { g.vy -= 60 * h; }                    // slow the entry burst
+      this.drift(g, h, 500, g.vy > 30 ? 120 : 75);
+      g.a += this.rnd(-1, 1) * 3 * h;
+      if (!g.tagged && growth > 0 && N + born.length < K && this.rand() < growth * h) {
+        born.push({ id: this.id(), x: g.x + this.rnd(-6, 6), y: g.y + this.rnd(-6, 6),
+          vx: this.rnd(-30, 30), vy: this.rnd(-30, 30), a: g.a + 0.4, tagged: false, dead: false });
+      }
+      if (!g.tagged && this.rand() < tagRate * h) g.tagged = true;
+      if (g.tagged && this.rand() < 1.0 * h) this.kill(g, "neutralized");
+    }
+
+    // Neutrophils: first responders from the blood, short-lived
+    if (active && t > 0.25 && N > 0) {
+      this.acc.neut += (3 + 0.15 * N) * h;
+      while (this.acc.neut >= 1) {
+        this.acc.neut -= 1;
+        if (this.neut.length < 45) this.neut.push({ id: this.id(), x: VESSEL_EDGE, y: this.rnd(70, H - 20), vx: 0, vy: 0,
+          born: t, life: this.rnd(1.3, 1.9), eaten: 0, digest: 0, target: null, retarget: -1, dying: -1 });
+      }
+    }
+    for (const c of this.neut) {
+      if (c.dying < 0 && (t - c.born > c.life || c.eaten >= 5)) c.dying = t;
+      if (c.dying >= 0) { this.drift(c, h, 100, 10); continue; }
+      this.hunt(c, h, 400, 0.2);
+    }
+    this.neut = this.neut.filter(c => c.dying < 0 || t - c.dying < 0.4);
+
+    // Macrophages: big eaters, arrive later, live long
+    if (active && t > 1 && N > 0) {
+      this.acc.macro += 1.5 * h;
+      while (this.acc.macro >= 1) {
+        this.acc.macro -= 1;
+        if (this.macro.length < 12) this.macro.push({ id: this.id(), x: VESSEL_EDGE, y: this.rnd(70, H - 20), vx: 0, vy: 0,
+          born: t, life: this.rnd(10, 14), eaten: 0, digest: 0, target: null, retarget: -1, dying: -1 });
+      }
+    }
+    for (const c of this.macro) {
+      if (c.dying < 0 && t - c.born > c.life) c.dying = t;
+      if (c.dying >= 0) { this.drift(c, h, 60, 8); continue; }
+      this.hunt(c, h, 140, 0.35);
+    }
+    this.macro = this.macro.filter(c => c.dying < 0 || t - c.dying < 0.6);
+
+    // Dendritic cells: grab a germ sample and carry it to the lymph node
+    if (active && !this.dendSent && t > 0.4) {
+      this.dendSent = true;
+      for (let i = 0; i < 2; i++) this.dend.push({ id: this.id(), x: VESSEL_EDGE, y: this.rnd(120, 420), vx: 0, vy: 0,
+        state: "seek", target: null, retarget: -1, home: -1 });
+    }
+    for (const d of this.dend) {
+      if (d.state === "seek") {
+        if (!d.target || d.target.dead || t - d.retarget > 0.2) { d.target = this.nearestGerm(d, false); d.retarget = t; }
+        if (d.target) {
+          if (this.moveToward(d, d.target.x, d.target.y, 380, h) < 12) { d.state = "carry"; d.target = null; }
+        } else this.drift(d, h, 300, 40);
+      } else if (d.state === "carry") {
+        if (this.moveToward(d, NODE.x, NODE.y, 380, h) < NODE.r * 0.45) {
+          d.state = "home"; d.home = t;
+          if (this.antigenAt < 0 && active) {
+            this.antigenAt = t;
+            if (!this.memoryRun) this.adaptiveAt = t + 4.0;   // B cells need days to be selected and multiply
+          }
+        }
+      } else {
+        d.x += Math.sin(t * 3 + d.id) * 6 * h; d.y += Math.cos(t * 2.5 + d.id) * 6 * h;
+      }
+    }
+    this.dend = this.dend.filter(d => d.state !== "home" || t - d.home < 3);
+
+    // Antibody level (0-100)
+    if (this.adaptiveOn) {
+      const Amax = this.memoryRun ? 100 : 35, p = this.memoryRun ? 70 : 10;
+      this.A += p * (1 - this.A / Amax) * h;
+    } else {
+      const base = this.hasMemory ? 4 : 0;
+      this.A += (base - this.A) * 0.12 * h;
+    }
+
+    // B cells (visual): leave the lymph node and release antibodies
+    const bTarget = this.adaptiveOn ? Math.min(12, 2 + Math.round(this.A / 9)) : 0;
+    if (this.bcells.filter(b => b.dying < 0).length < bTarget && this.rand() < 6 * h) {
+      this.bcells.push({ id: this.id(), x: NODE.x, y: NODE.y, vx: this.rnd(-60, -20), vy: this.rnd(-60, -10),
+        dest: { x: this.rnd(200, 700), y: this.rnd(120, 480) }, dying: -1 });
+    }
+    for (const b of this.bcells) {
+      if (b.dying < 0 && !this.adaptiveOn) b.dying = t + this.rnd(0, 1.5);
+      if (b.dest && this.moveToward(b, b.dest.x, b.dest.y, 160, h) < 4) b.dest = null;
+      if (!b.dest) this.drift(b, h, 120, 15);
+    }
+    this.bcells = this.bcells.filter(b => b.dying < 0 || t - b.dying < 0.5);
+
+    // Antibody particles (visual), amount follows antibody level
+    const abTarget = Math.min(100, Math.round(this.A));
+    const live = this.bcells.filter(b => b.dying < 0);
+    if (this.abs.length < abTarget && live.length && this.rand() < 40 * h) {
+      const src = live[Math.floor(this.rand() * live.length)];
+      this.abs.push({ x: src.x, y: src.y, vx: this.rnd(-80, 80), vy: this.rnd(-80, 80), a: this.rnd(0, 6.28), born: t, life: this.rnd(1.5, 3) });
+    }
+    for (const p of this.abs) { this.drift(p, h, 300, 70); p.a += h * 2; }
+    this.abs = this.abs.filter(p => t - p.born < p.life && (this.abs.length <= abTarget + 5 || this.rand() > 0.5 * h * 10));
+
+    // Memory cells sit near the lymph node
+    for (const m of this.memory) {
+      this.drift(m, h, 60, 8);
+      m.x = Math.max(NODE.x - 140, m.x); m.y = Math.max(NODE.y - 150, m.y);
+    }
+
+    // Remove dead germs, add new ones
+    if (this.germs.some(g => g.dead)) this.germs = this.germs.filter(g => !g.dead);
+    for (const g of born) this.germs.push(g);
+    this.effects = this.effects.filter(e => t - e.t0 < 0.2);
+
+    // Cleared?
+    if (active && this.germs.length === 0 && t > 0.3) {
+      this.state = "cleared"; this.clearedAt = t;
+      if (this.adaptiveAt >= 0 && t >= this.adaptiveAt) {
+        this.hasMemory = true;
+        this.addMemoryCells(Math.max(0, 6 - this.memory.length));
+      }
+    }
+    this.record(false);
+  }
+
+  record(force) {
+    if (this.state === "idle") return;
+    if (this.state === "cleared" && this.t > this.clearedAt + 2) return;
+    if (this.t > 40) return;
+    if (force || this.t - this.lastRec >= 0.1) {
+      this.lastRec = this.t;
+      this.history.push({ t: this.t, g: this.germs.length, a: this.A });
+    }
+  }
+}
+</script>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const sim = new Sim();
+  const root = document.documentElement;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let playing = true, speed = 1, C = {};
+  const SECONDS_PER_DAY = 1.5;
+
+  // ---------- tokens ----------
+  function readTokens() {
+    const cs = getComputedStyle(root);
+    const names = ["bg", "surface", "ink", "muted", "line", "accent", "tissue", "tissue-cell", "nucleus", "skin",
+      "vessel", "rbc", "node", "germ", "neut", "macro", "dend", "bcell", "ab", "glow"];
+    for (const n of names) C[n] = cs.getPropertyValue("--" + n).trim();
+    C.glow = C.glow === "1";
+  }
+  function alpha(hex, a) {
+    const h = hex.replace("#", "");
+    const n = parseInt(h.length === 3 ? h.split("").map(c => c + c).join("") : h, 16);
+    return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`;
+  }
+
+  // ---------- tissue canvas ----------
+  const tc = $("tissue"), tctx = tc.getContext("2d");
+  const bg = document.createElement("canvas"), bgctx = bg.getContext("2d");
+  let scale = 1, dpr = 1;
+
+  function seeded(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+  function sizeCanvases() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = tc.parentElement.clientWidth;
+    scale = w / W;
+    tc.style.height = (H * scale) + "px";
+    tc.width = Math.round(w * dpr); tc.height = Math.round(H * scale * dpr);
+    bg.width = tc.width; bg.height = tc.height;
+    drawBackground();
+    sizeChart();
+  }
+
+  function drawBackground() {
+    const g = bgctx;
+    g.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+    g.fillStyle = C.tissue; g.fillRect(0, 0, W, H);
+    // body cells of the tissue
+    const r = seeded(7);
+    for (let y = 60; y < H; y += 46) {
+      for (let x = 90 + (y / 46 % 2) * 23; x < W; x += 46) {
+        const cx = x + (r() - 0.5) * 16, cy = y + (r() - 0.5) * 16, rad = 17 + r() * 5;
+        g.beginPath();
+        for (let k = 0; k <= 7; k++) {
+          const ang = k / 7 * Math.PI * 2, rr = rad * (0.85 + r() * 0.25);
+          const px = cx + Math.cos(ang) * rr, py = cy + Math.sin(ang) * rr;
+          k ? g.lineTo(px, py) : g.moveTo(px, py);
+        }
+        g.closePath(); g.fillStyle = C["tissue-cell"]; g.fill();
+        g.beginPath(); g.arc(cx + (r() - 0.5) * 6, cy + (r() - 0.5) * 6, 4.5 + r() * 1.5, 0, Math.PI * 2);
+        g.fillStyle = C.nucleus; g.fill();
+      }
+    }
+    // skin with a cut
+    g.fillStyle = C.skin;
+    g.beginPath();
+    g.moveTo(0, 0); g.lineTo(W, 0); g.lineTo(W, 34);
+    g.lineTo(WOUND.x + 26, 34); g.lineTo(WOUND.x + 4, 44); g.lineTo(WOUND.x - 4, 44); g.lineTo(WOUND.x - 26, 34);
+    g.lineTo(0, 34); g.closePath(); g.fill();
+    g.clearRect(WOUND.x - 9, 0, 18, 34); g.fillStyle = C.tissue; g.fillRect(WOUND.x - 9, 0, 18, 34);
+    // blood vessel
+    g.fillStyle = C.vessel; g.fillRect(0, 34, VESSEL_EDGE - 4, H - 34);
+    g.fillStyle = alpha(C.rbc, 0.5); g.fillRect(VESSEL_EDGE - 6, 34, 3, H - 34);
+    // lymph node
+    g.beginPath(); g.ellipse(NODE.x, NODE.y, NODE.r + 10, NODE.r, -0.3, 0, Math.PI * 2);
+    g.fillStyle = C.node; g.fill(); g.strokeStyle = alpha(C.accent, 0.5); g.lineWidth = 2; g.stroke();
+    // labels
+    g.font = "600 13px 'Atkinson Hyperlegible', system-ui, sans-serif";
+    g.fillStyle = C.muted; g.textAlign = "left";
+    g.fillText("Skin", 90, 22);
+    g.fillText("Cut", WOUND.x + 18, 22);
+    g.textAlign = "center"; g.fillText("Lymph node", NODE.x - 4, NODE.y + NODE.r + 2 > H - 4 ? NODE.y + 5 : NODE.y + 5);
+    g.save(); g.translate(26, H / 2); g.rotate(-Math.PI / 2); g.fillStyle = C.ink; g.globalAlpha = 0.6;
+    g.fillText("Blood vessel", 0, 4); g.restore();
+  }
+
+  const rbcs = Array.from({ length: 16 }, (_, i) => ({ x: 14 + (i % 3) * 16, y: i * 36 }));
+
+  function glowOn(color, blur) { if (C.glow) { tctx.shadowColor = color; tctx.shadowBlur = blur; } }
+  function glowOff() { tctx.shadowBlur = 0; }
+
+  function drawGerm(g) {
+    tctx.save(); tctx.translate(g.x, g.y); tctx.rotate(g.a);
+    glowOn(C.germ, 6);
+    tctx.fillStyle = alpha(C.germ, 0.85);
+    roundRect(-6, -2.8, 12, 5.6, 2.8); tctx.fill();
+    glowOff();
+    if (g.tagged) {
+      tctx.strokeStyle = C.ab; tctx.lineWidth = 1.3;
+      ySmall(-3, -4.5, Math.PI); ySmall(3, 4.5, 0);
+    }
+    tctx.restore();
+  }
+  function roundRect(x, y, w, h, r) {
+    tctx.beginPath(); tctx.moveTo(x + r, y); tctx.arcTo(x + w, y, x + w, y + h, r); tctx.arcTo(x + w, y + h, x, y + h, r);
+    tctx.arcTo(x, y + h, x, y, r); tctx.arcTo(x, y, x + w, y, r); tctx.closePath();
+  }
+  function ySmall(x, y, rot) {
+    tctx.save(); tctx.translate(x, y); tctx.rotate(rot); tctx.beginPath();
+    tctx.moveTo(0, 0); tctx.lineTo(0, -3); tctx.moveTo(0, -3); tctx.lineTo(-2, -5); tctx.moveTo(0, -3); tctx.lineTo(2, -5);
+    tctx.stroke(); tctx.restore();
+  }
+  function drawY(x, y, a, s) {
+    tctx.save(); tctx.translate(x, y); tctx.rotate(a); tctx.beginPath();
+    tctx.moveTo(0, s); tctx.lineTo(0, 0); tctx.lineTo(-s * 0.8, -s); tctx.moveTo(0, 0); tctx.lineTo(s * 0.8, -s);
+    tctx.stroke(); tctx.restore();
+  }
+  function fadeOf(c, dur) { return c.dying >= 0 ? Math.max(0, 1 - (sim.t - c.dying) / dur) : 1; }
+
+  function drawNeut(c) {
+    const f = fadeOf(c, 0.4);
+    tctx.globalAlpha = f;
+    glowOn(C.neut, 8);
+    tctx.beginPath(); tctx.arc(c.x, c.y, 9, 0, Math.PI * 2);
+    tctx.fillStyle = alpha(C.neut, 0.3); tctx.fill(); tctx.strokeStyle = C.neut; tctx.lineWidth = 1.6; tctx.stroke();
+    glowOff();
+    tctx.fillStyle = C.neut;   // lobed nucleus
+    for (let k = 0; k < 3; k++) { tctx.beginPath(); tctx.arc(c.x - 3.5 + k * 3.5, c.y + (k % 2 ? -1.5 : 1.5), 2.2, 0, Math.PI * 2); tctx.fill(); }
+    if (c.digest > 0) { tctx.fillStyle = alpha(C.germ, 0.8); tctx.fillRect(c.x - 2, c.y + 3, 4, 2.5); }
+    tctx.globalAlpha = 1;
+  }
+  function drawMacro(c) {
+    const f = fadeOf(c, 0.6), t = sim.t;
+    tctx.globalAlpha = f;
+    glowOn(C.macro, 10);
+    tctx.beginPath();
+    for (let k = 0; k <= 16; k++) {
+      const ang = k / 16 * Math.PI * 2;
+      const rr = 15 + 2.5 * Math.sin(ang * 3 + t * 4 + c.id) + 1.5 * Math.sin(ang * 5 - t * 3);
+      const px = c.x + Math.cos(ang) * rr, py = c.y + Math.sin(ang) * rr;
+      k ? tctx.lineTo(px, py) : tctx.moveTo(px, py);
+    }
+    tctx.closePath(); tctx.fillStyle = alpha(C.macro, 0.28); tctx.fill(); tctx.strokeStyle = C.macro; tctx.lineWidth = 1.8; tctx.stroke();
+    glowOff();
+    tctx.beginPath(); tctx.ellipse(c.x - 3, c.y - 2, 5, 3.5, 0.5, 0, Math.PI * 2); tctx.fillStyle = C.macro; tctx.fill();
+    if (c.digest > 0) { tctx.fillStyle = alpha(C.germ, 0.8); tctx.fillRect(c.x + 3, c.y + 3, 5, 2.5); }
+    tctx.globalAlpha = 1;
+  }
+  function drawDend(d) {
+    const f = d.state === "home" ? Math.max(0, 1 - (sim.t - d.home) / 3) : 1;
+    tctx.globalAlpha = f;
+    glowOn(C.dend, 8);
+    tctx.beginPath();
+    for (let k = 0; k <= 10; k++) {
+      const ang = k / 10 * Math.PI * 2 + d.id, rr = k % 2 ? 6 : 15;
+      const px = d.x + Math.cos(ang) * rr, py = d.y + Math.sin(ang) * rr;
+      k ? tctx.lineTo(px, py) : tctx.moveTo(px, py);
+    }
+    tctx.closePath(); tctx.fillStyle = alpha(C.dend, 0.3); tctx.fill(); tctx.strokeStyle = C.dend; tctx.lineWidth = 1.6; tctx.stroke();
+    glowOff();
+    if (d.state !== "seek") { tctx.fillStyle = C.germ; tctx.beginPath(); tctx.arc(d.x, d.y, 3, 0, Math.PI * 2); tctx.fill(); }
+    tctx.globalAlpha = 1;
+  }
+  function drawB(b) {
+    const f = b.dying >= 0 && sim.t > b.dying ? Math.max(0, 1 - (sim.t - b.dying) / 0.5) : 1;
+    tctx.globalAlpha = f;
+    glowOn(C.bcell, 8);
+    tctx.beginPath(); tctx.arc(b.x, b.y, 8.5, 0, Math.PI * 2);
+    tctx.fillStyle = alpha(C.bcell, 0.3); tctx.fill(); tctx.strokeStyle = C.bcell; tctx.lineWidth = 1.6; tctx.stroke();
+    glowOff();
+    tctx.beginPath(); tctx.arc(b.x + 1.5, b.y, 4.5, 0, Math.PI * 2); tctx.fillStyle = C.bcell; tctx.fill();
+    tctx.globalAlpha = 1;
+  }
+  function drawMemory(m) {
+    const pulse = sim.adaptiveOn && sim.memoryRun ? 0.5 + 0.5 * Math.sin(sim.t * 8) : 0;
+    glowOn(C.bcell, 12 + pulse * 10);
+    tctx.beginPath(); tctx.arc(m.x, m.y, 7 + pulse * 1.5, 0, Math.PI * 2);
+    tctx.fillStyle = C.bcell; tctx.fill();
+    glowOff();
+    tctx.beginPath(); tctx.arc(m.x, m.y, 11 + pulse * 3, 0, Math.PI * 2);
+    tctx.strokeStyle = alpha(C.bcell, 0.6); tctx.lineWidth = 1.5; tctx.setLineDash([3, 3]); tctx.stroke(); tctx.setLineDash([]);
+  }
+
+  function drawTissue(realDt) {
+    tctx.setTransform(1, 0, 0, 1, 0, 0);
+    tctx.drawImage(bg, 0, 0);
+    tctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+
+    // red blood cells flowing
+    tctx.fillStyle = C.rbc;
+    for (const r of rbcs) {
+      if (!reduceMotion && playing) r.y += realDt * 60 * speed;
+      if (r.y > H + 10) r.y = 30;
+      if (r.y < 40) continue;
+      tctx.beginPath(); tctx.ellipse(r.x, r.y, 6, 4, 0.3, 0, Math.PI * 2); tctx.globalAlpha = 0.7; tctx.fill();
+    }
+    tctx.globalAlpha = 1;
+
+    // lymph node activity
+    if (sim.state === "active" && sim.antigenAt >= 0) {
+      const on = sim.adaptiveOn;
+      const p = on ? 1 : 0.5 + 0.5 * Math.sin(sim.t * 6);
+      tctx.beginPath(); tctx.ellipse(NODE.x, NODE.y, NODE.r + 14, NODE.r + 4, -0.3, 0, Math.PI * 2);
+      tctx.strokeStyle = alpha(C.bcell, on ? 0.9 : 0.3 + 0.5 * p); tctx.lineWidth = 3; tctx.stroke();
+    }
+
+    for (const m of sim.memory) drawMemory(m);
+    for (const g of sim.germs) drawGerm(g);
+    tctx.strokeStyle = C.ab; tctx.lineWidth = 1.5;
+    for (const p of sim.abs) drawY(p.x, p.y, p.a, 3.5);
+    for (const b of sim.bcells) drawB(b);
+    for (const c of sim.macro) drawMacro(c);
+    for (const c of sim.neut) drawNeut(c);
+    for (const d of sim.dend) drawDend(d);
+
+    for (const e of sim.effects) {
+      const k = (sim.t - e.t0) / 0.2;
+      tctx.beginPath(); tctx.arc(e.x, e.y, 4 + k * 10, 0, Math.PI * 2);
+      tctx.strokeStyle = alpha(e.kind === "neutralized" ? C.ab : C.germ, 1 - k); tctx.lineWidth = 1.5; tctx.stroke();
+    }
+  }
+
+  // ---------- chart ----------
+  const cc = $("chart"), cctx = cc.getContext("2d");
+  let cw = 300, ch = 220;
+  function sizeChart() {
+    cw = cc.clientWidth; ch = cc.clientHeight;
+    cc.width = Math.round(cw * dpr); cc.height = Math.round(ch * dpr);
+  }
+  function drawChart() {
+    const g = cctx, teacher = root.classList.contains("teacher");
+    const fs = teacher ? 14 : 11.5, lw = teacher ? 3.5 : 2.4;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, cw, ch);
+    const pad = { l: fs * 3.2, r: fs * 3.4, t: 10, b: fs * 3 };
+    const pw = cw - pad.l - pad.r, ph = ch - pad.t - pad.b;
+    const hist = sim.history, ghost = sim.ghost ? sim.ghost.history : [];
+    const lastT = Math.max(hist.length ? hist[hist.length - 1].t : 0, ghost.length ? ghost[ghost.length - 1].t : 0);
+    const maxT = Math.max(14, Math.ceil(lastT / 2) * 2);
+    const x = t => pad.l + t / maxT * pw;
+    const yG = n => pad.t + (1 - n / K) * ph;
+    const yA = a => pad.t + (1 - a / 100) * ph;
+    g.font = `${fs}px 'Atkinson Hyperlegible', system-ui, sans-serif`;
+
+    // grid + axes
+    g.strokeStyle = C.line; g.lineWidth = 1;
+    g.fillStyle = C.muted;
+    for (let i = 0; i <= 4; i++) {
+      const yy = pad.t + ph * i / 4;
+      g.beginPath(); g.moveTo(pad.l, yy); g.lineTo(pad.l + pw, yy); g.stroke();
+      g.textAlign = "right"; g.fillText(String(Math.round(K * (1 - i / 4))), pad.l - 5, yy + fs * 0.35);
+      g.textAlign = "left"; g.fillText(Math.round(100 * (1 - i / 4)) + "%", pad.l + pw + 5, yy + fs * 0.35);
+    }
+    const stepT = maxT > 20 ? 4 : 2;
+    g.textAlign = "center";
+    for (let d = 0; d <= maxT; d += stepT) g.fillText(String(d), x(d), pad.t + ph + fs * 1.3);
+    g.fillText("Days since infection", pad.l + pw / 2, ch - 4);
+
+    if (!hist.length && !ghost.length) {
+      g.fillStyle = C.muted; g.textAlign = "center";
+      g.fillText("Press Infect to start the graph", pad.l + pw / 2, pad.t + ph / 2);
+      return;
+    }
+
+    const line = (data, key, yf, color, width, dash, a) => {
+      if (!data.length) return;
+      g.save(); g.globalAlpha = a; g.strokeStyle = color; g.lineWidth = width; g.setLineDash(dash); g.lineJoin = "round";
+      g.beginPath(); data.forEach((p, i) => i ? g.lineTo(x(p.t), yf(p[key])) : g.moveTo(x(p.t), yf(p[key]))); g.stroke(); g.restore();
+    };
+    line(ghost, "g", yG, C.germ, lw * 0.8, [5, 4], 0.45);
+    line(ghost, "a", yA, C.ab, lw * 0.8, [5, 4], 0.45);
+    line(hist, "a", yA, C.ab, lw, [], 1);
+    line(hist, "g", yG, C.germ, lw, [], 1);
+
+    if (sim.adaptiveAt >= 0 && sim.state !== "idle" && sim.t >= sim.adaptiveAt && sim.adaptiveAt <= maxT) {
+      const ax = x(sim.adaptiveAt);
+      g.save(); g.strokeStyle = C.ab; g.setLineDash([2, 3]); g.lineWidth = 1.2;
+      g.beginPath(); g.moveTo(ax, pad.t); g.lineTo(ax, pad.t + ph); g.stroke(); g.restore();
+      g.fillStyle = C.ink; g.textAlign = ax > pad.l + pw * 0.7 ? "right" : "left";
+      g.fillText("Antibodies start", ax + (g.textAlign === "left" ? 4 : -4), pad.t + fs);
+    }
+  }
+
+  // ---------- UI text ----------
+  const fmt = d => (Math.round(d * 10) / 10).toFixed(1);
+  function phase() {
+    const s = sim, t = s.t;
+    if (s.state === "idle") return s.hasMemory
+      ? ["Vaccinated body", "The vaccine left memory cells near the lymph node (the glowing dots). Press Infect to let germs in."]
+      : ["Healthy tissue", "No germs yet. Press Infect to let germs in through a cut in the skin."];
+    if (s.state === "cleared") {
+      const remembered = s.adaptiveAt >= 0 && s.clearedAt >= s.adaptiveAt;
+      return remembered
+        ? ["Infection cleared", `All germs gone by day ${fmt(s.clearedAt)}. Memory B cells stay behind, ready if this germ comes back. Try Reinfect.`]
+        : ["Cleared by innate defense alone", `All germs gone by day ${fmt(s.clearedAt)}, before B cells were trained. No memory cells were made.`];
+    }
+    if (s.adaptiveOn) return s.memoryRun
+      ? ["Fast adaptive response", "Memory B cells recognized this germ and started making antibodies within about a day."]
+      : ["Adaptive response", "B cells trained in the lymph node release antibodies that fit this germ exactly. Coated germs stop multiplying and get eaten faster."];
+    if (s.memoryRun && t >= 0.5) return ["Innate response, memory on alert", "Neutrophils and macrophages fight first. Memory B cells already know this germ and are waking up."];
+    if (s.antigenAt >= 0) return ["Training B cells", "A dendritic cell brought a germ sample to the lymph node. B cells need several days to learn to make the matching antibody. Meanwhile, innate cells keep fighting."];
+    if (t < 0.5) return ["Germs enter", "Bacteria get in through the cut and start splitting in two."];
+    return ["Innate response", "Neutrophils and macrophages rush in from the blood and eat germs. They attack any germ the same way and learn nothing from it."];
+  }
+  let lastPhase = "";
+  let uiTimer = 0;
+  function updateUI() {
+    const [title, text] = phase();
+    if (title + text !== lastPhase) { lastPhase = title + text; $("phaseTitle").textContent = title; $("phaseText").textContent = text; }
+    $("day").innerHTML = sim.state === "idle" ? "–<small>no infection yet</small>" : `Day ${Math.floor(sim.t)}<small>since infection</small>`;
+    $("germCount").textContent = sim.germs.length;
+    $("abLevel").textContent = Math.round(sim.A) + "%";
+    const ib = $("infectBtn");
+    ib.textContent = sim.infections > 0 ? "Reinfect" : "Infect";
+    ib.disabled = sim.state === "active";
+    $("ghostKey").hidden = !sim.ghost;
+    const vax = $("vaccinated");
+    vax.disabled = sim.infections > 0;
+    $("vaxNote").textContent = vax.disabled ? "Press Reset to change this." : "Gives the body memory cells without getting sick.";
+  }
+
+  // ---------- info cards ----------
+  const INFO = {
+    germ: ["Bacterium (germ)", "Gets in through the cut and splits in two over and over. Left alone, a few germs become hundreds in days."],
+    tagged: ["Germ coated with antibodies", "Antibodies stick to it, stop it from multiplying and mark it so phagocytes eat it faster."],
+    neut: ["Neutrophil", "First responder from the blood. Eats germs fast but dies after a day or two. Part of the innate (built-in) defense."],
+    macro: ["Macrophage", "Big eater that arrives a bit later and lives for weeks. Also part of the innate defense."],
+    dend: ["Dendritic cell", "Grabs a piece of a germ and carries it to the lymph node to show B cells what the enemy looks like. It links the innate and adaptive defenses."],
+    bcell: ["B cell", "Makes antibodies shaped to fit only this germ. Part of the adaptive (learned) defense."],
+    ab: ["Antibody", "Y-shaped protein made by B cells. It sticks only to the kind of germ it was made for."],
+    memory: ["Memory B cell", "Stays in the body for years after an infection or a vaccine. If the same germ returns, antibody production starts within a day or two."],
+    node: ["Lymph node", "Where B cells meet germ samples and learn to make the right antibody. The first time, this takes several days."],
+    vessel: ["Blood vessel", "Carries red blood cells, plus the white blood cells that leave it to fight in the tissue."],
+    cut: ["Cut in the skin", "Skin is a barrier. A cut lets germs into the tissue underneath."]
+  };
+  function showInfo(key) {
+    const [title, text] = INFO[key];
+    $("infoTitle").textContent = title; $("infoText").textContent = text;
+    $("info").hidden = false; $("hint").hidden = true;
+  }
+  $("infoClose").onclick = () => { $("info").hidden = true; };
+
+  tc.addEventListener("click", ev => {
+    const rect = tc.getBoundingClientRect();
+    const px = (ev.clientX - rect.left) / scale, py = (ev.clientY - rect.top) / scale;
+    let best = null, bd = 22 * 22;
+    const consider = (list, key, r) => { for (const o of list) { const d = (o.x - px) ** 2 + (o.y - py) ** 2 - r * r; if (d < bd) { bd = d; best = typeof key === "function" ? key(o) : key; } } };
+    consider(sim.germs, g => g.tagged ? "tagged" : "germ", 0);
+    consider(sim.abs, "ab", 0);
+    consider(sim.memory, "memory", 6);
+    consider(sim.bcells, "bcell", 6);
+    consider(sim.neut, "neut", 6);
+    consider(sim.macro, "macro", 12);
+    consider(sim.dend, "dend", 10);
+    if (!best) {
+      if ((px - NODE.x) ** 2 + (py - NODE.y) ** 2 < (NODE.r + 10) ** 2) best = "node";
+      else if (px < VESSEL_EDGE) best = "vessel";
+      else if (py < 46 && Math.abs(px - WOUND.x) < 40) best = "cut";
+    }
+    if (best) showInfo(best); else $("info").hidden = true;
+  });
+
+  // legend
+  const LEGEND = [
+    ["group", "Invaders"], ["germ", "Germ"], ["tagged", "Coated germ"],
+    ["group", "Innate defense (fast)"], ["neut", "Neutrophil"], ["macro", "Macrophage"], ["dend", "Dendritic cell"],
+    ["group", "Adaptive defense (learns)"], ["bcell", "B cell"], ["ab", "Antibody"], ["memory", "Memory B cell"], ["node", "Lymph node"]
+  ];
+  function icon(key) {
+    const s = (body) => `<svg width="26" height="22" viewBox="-13 -11 26 22" aria-hidden="true">${body}</svg>`;
+    switch (key) {
+      case "germ": return s(`<rect x="-7" y="-3" width="14" height="6" rx="3" fill="var(--germ)"/>`);
+      case "tagged": return s(`<rect x="-7" y="-3" width="14" height="6" rx="3" fill="var(--germ)"/><path d="M-3 -3v-3l-2-2M-3 -6l2-2M3 3v3l-2 2M3 6l2 2" stroke="var(--ab)" stroke-width="1.4" fill="none"/>`);
+      case "neut": return s(`<circle r="9" fill="var(--neut)" fill-opacity=".3" stroke="var(--neut)" stroke-width="1.6"/><circle cx="-3.5" cy="1.5" r="2.2" fill="var(--neut)"/><circle cy="-1.5" r="2.2" fill="var(--neut)"/><circle cx="3.5" cy="1.5" r="2.2" fill="var(--neut)"/>`);
+      case "macro": return s(`<path d="M0-10C6-10 11-6 10-1S7 9 1 10-10 7-10 1-6-10 0-10Z" fill="var(--macro)" fill-opacity=".28" stroke="var(--macro)" stroke-width="1.6"/><ellipse cx="-2" cy="-1" rx="4" ry="3" fill="var(--macro)"/>`);
+      case "dend": return s(`<path d="M10 0L4 2 3 9-1 4-8 6-4 0-8-6-1-4 3-9 4-2Z" fill="var(--dend)" fill-opacity=".3" stroke="var(--dend)" stroke-width="1.5"/>`);
+      case "bcell": return s(`<circle r="8.5" fill="var(--bcell)" fill-opacity=".3" stroke="var(--bcell)" stroke-width="1.6"/><circle cx="1.5" r="4.5" fill="var(--bcell)"/>`);
+      case "ab": return s(`<path d="M0 7V0L-5-6M0 0l5-6" stroke="var(--ab)" stroke-width="2" fill="none" stroke-linecap="round"/>`);
+      case "memory": return s(`<circle r="6" fill="var(--bcell)"/><circle r="9.5" fill="none" stroke="var(--bcell)" stroke-width="1.4" stroke-dasharray="3 3"/>`);
+      case "node": return s(`<ellipse rx="11" ry="8" fill="var(--node)" stroke="var(--accent)" stroke-opacity=".6" stroke-width="1.5"/>`);
+    }
+    return "";
+  }
+  $("legend").innerHTML = LEGEND.map(([k, label]) => k === "group"
+    ? `<li class="legend-group">${label}</li>`
+    : `<li><button type="button" data-key="${k}">${icon(k)}<span>${label}</span></button></li>`).join("");
+  $("legend").addEventListener("click", e => { const b = e.target.closest("button[data-key]"); if (b) showInfo(b.dataset.key); });
+
+  // ---------- controls ----------
+  const strength = $("strength");
+  const showStrength = () => { $("strengthOut").textContent = STRENGTHS[+strength.value].name; };
+  strength.addEventListener("input", showStrength); showStrength();
+
+  $("infectBtn").onclick = () => { if (sim.infect(+strength.value)) { playing = true; $("playBtn").textContent = "Pause"; } };
+  $("playBtn").onclick = () => { playing = !playing; $("playBtn").textContent = playing ? "Pause" : "Play"; };
+  $("resetBtn").onclick = () => { sim.reset($("vaccinated").checked); $("info").hidden = true; };
+  $("vaccinated").addEventListener("change", e => { if (sim.infections === 0) sim.reset(e.target.checked); });
+
+  $("speedSeg").addEventListener("click", e => {
+    const b = e.target.closest("button[data-speed]"); if (!b) return;
+    speed = +b.dataset.speed;
+    for (const x of $("speedSeg").querySelectorAll("button")) x.setAttribute("aria-pressed", String(x === b));
+  });
+
+  function setMode(mode) {
+    root.classList.toggle("teacher", mode === "teacher");
+    for (const b of document.querySelectorAll("[data-mode]")) b.setAttribute("aria-pressed", String(b.dataset.mode === mode));
+    try { localStorage.setItem("bd-mode", mode); } catch (e) {}
+    requestAnimationFrame(sizeCanvases);
+  }
+  for (const b of document.querySelectorAll("[data-mode]")) b.onclick = () => setMode(b.dataset.mode);
+  try { const m = localStorage.getItem("bd-mode"); if (m) setMode(m); } catch (e) {}
+
+  for (const ta of document.querySelectorAll("textarea[data-task]")) {
+    const key = "bd-task-" + ta.dataset.task;
+    try { ta.value = localStorage.getItem(key) || ""; } catch (e) {}
+    ta.addEventListener("input", () => { try { localStorage.setItem(key, ta.value); } catch (e) {} });
+  }
+
+  // ---------- loop ----------
+  readTokens();
+  sizeCanvases();
+  new ResizeObserver(() => sizeCanvases()).observe(tc.parentElement);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { readTokens(); drawBackground(); });
+  if (document.fonts) document.fonts.ready.then(() => drawBackground());
+
+  let last = performance.now();
+  function frame(now) {
+    const realDt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (playing) sim.step(realDt / SECONDS_PER_DAY * speed);
+    drawTissue(realDt);
+    uiTimer += realDt;
+    if (uiTimer > 0.1) { uiTimer = 0; updateUI(); drawChart(); }
+    requestAnimationFrame(frame);
+  }
+  updateUI(); drawChart();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

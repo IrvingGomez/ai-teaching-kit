@@ -1,0 +1,10 @@
+CHECK BEFORE CLASS
+
+AI makes mistakes. The teacher checks.
+
+1. Is the science correct? Test a case with a known answer.
+2. Do the numbers and units make sense?
+3. Does it work on a phone?
+4. What does the student do? Only watch, or also act?
+
+Example of a known answer: rice on a grid, 100 grains on 100 squares. The mean is 1 grain per square, and the Poisson model says about 37 squares stay empty.

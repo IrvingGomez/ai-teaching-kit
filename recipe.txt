@@ -1,0 +1,35 @@
+A PROMPT RECIPE HAS FIVE PARTS
+
+1. Topic and students. What concept, which grade, what they already know.
+2. What the student does. Sliders, buttons, clicks.
+3. What changes on screen. The picture and the numbers.
+4. What the student should notice. The one idea of the lesson.
+5. Format. One HTML file, no installs, no internet, works on a phone.
+
+
+EXAMPLE: PROJECTILE MOTION
+
+Build an interactive simulation for my class as ONE HTML file (HTML, CSS and JavaScript in the same file, no external libraries, no internet needed).
+
+Topic: projectile motion, no air resistance. Use g = 9.8 m/s^2.
+Students: grade [10]. They know [speed = distance / time], but not vectors yet.
+
+What the student does: changes the launch angle (0 to 90 degrees) and the initial speed with two sliders, then presses "Launch".
+
+What changes on screen: the path of the ball is drawn. The landing distance and the maximum height are shown as numbers, with units.
+
+What the student should notice: for the same speed, 45 degrees goes farthest, and 30 and 60 degrees land at the same distance.
+
+Keep it simple: one screen, large text, works on a phone.
+
+
+HOW TO SAVE THE FILE
+
+1. Copy the code from the chat.
+2. Paste it into a plain text editor.
+3. Save it as lesson.html.
+4. Double-click the file. It opens in the browser.
+
+Windows Notepad: in "Save as type", choose "All files". Otherwise the name ends in .txt.
+Mac TextEdit: choose Format, then Make Plain Text, before you save.
+Some chatbots have a download button. These steps work in all of them.

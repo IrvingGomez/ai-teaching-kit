@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rice on a Grid</title>
+<style>
+  body { font-family: Georgia, serif; margin: 0 auto; padding: 16px; max-width: 860px; color: #222; background: #fff; }
+  h1 { font-size: 1.6em; margin: 0 0 4px; color: #68228b; }
+  p { font-size: 1.1em; margin: 6px 0 12px; }
+  .layout { display: flex; flex-wrap: wrap; gap: 20px; }
+  .layout > * { min-width: 0; max-width: 100%; }
+  th:first-child { white-space: normal; }
+  canvas { border: 1px solid #999; width: 100%; max-width: 400px; height: auto; display: block; }
+  .controls { margin: 12px 0; font-size: 1.1em; }
+  button { font-size: 1.1em; padding: 8px 16px; background: #68228b; color: #fff; border: 0; border-radius: 6px; cursor: pointer; }
+  label { display: inline-block; margin: 8px 12px 8px 0; }
+  table { border-collapse: collapse; font-size: 1.1em; margin-top: 8px; }
+  th, td { border: 1px solid #bbb; padding: 4px 12px; text-align: right; }
+  .swatch { display: inline-block; width: 12px; height: 12px; margin-right: 4px; }
+</style>
+</head>
+<body>
+<h1>Rice on a Grid</h1>
+<p>Drop rice on a 10 by 10 grid. The average is 1 grain per square when you drop 100. Why are so many squares empty?</p>
+
+<div class="controls">
+  <button id="scatterButton">Scatter the rice</button>
+  <label>Grains: <input id="grainSlider" type="range" min="20" max="300" step="10" value="100"> <span id="grainLabel">100</span></label>
+  <label><input id="clumpBox" type="checkbox"> Grains fall in clumps</label>
+</div>
+
+<div class="layout">
+  <canvas id="gridCanvas" width="400" height="400" aria-label="Grid with rice grains"></canvas>
+  <div>
+    <canvas id="barCanvas" width="400" height="240" aria-label="Counted squares and Poisson prediction"></canvas>
+    <p><span class="swatch" style="background:#2e8b57"></span>Your count
+       <span class="swatch" style="background:#c9a0dc;margin-left:12px"></span>Poisson prediction</p>
+    <table id="resultTable">
+      <thead><tr><th>Grains in a square</th><th>Your count</th><th>Poisson</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// All the steps of the lesson live here, in the order they happen.
+const GRID_SIZE = 10;
+const SQUARE_COUNT = GRID_SIZE * GRID_SIZE;
+const CATEGORIES = ["0", "1", "2", "3+"];
+const GRAINS_PER_CLUMP = 5;
+const CLUMP_SPREAD = 0.04;
+
+const gridCanvas = document.getElementById("gridCanvas");
+const barCanvas = document.getElementById("barCanvas");
+const grainSlider = document.getElementById("grainSlider");
+const grainLabel = document.getElementById("grainLabel");
+const clumpBox = document.getElementById("clumpBox");
+const scatterButton = document.getElementById("scatterButton");
+const tableBody = document.querySelector("#resultTable tbody");
+
+// Step 1: choose where each grain lands, as x and y between 0 and 1.
+function scatterIndependent(grainCount) {
+  const grains = [];
+  for (let i = 0; i < grainCount; i++) {
+    grains.push({ x: Math.random(), y: Math.random() });
+  }
+  return grains;
+}
+
+function keepInside(value) {
+  return Math.min(0.999, Math.max(0, value));
+}
+
+function scatterInClumps(grainCount) {
+  const grains = [];
+  while (grains.length < grainCount) {
+    const centerX = Math.random();
+    const centerY = Math.random();
+    for (let i = 0; i < GRAINS_PER_CLUMP && grains.length < grainCount; i++) {
+      grains.push({
+        x: keepInside(centerX + (Math.random() - 0.5) * CLUMP_SPREAD),
+        y: keepInside(centerY + (Math.random() - 0.5) * CLUMP_SPREAD),
+      });
+    }
+  }
+  return grains;
+}
+
+// Step 2: count how many squares hold 0, 1, 2, or 3+ grains.
+function countSquares(grains) {
+  const grainsInSquare = new Array(SQUARE_COUNT).fill(0);
+  for (const grain of grains) {
+    const column = Math.floor(grain.x * GRID_SIZE);
+    const row = Math.floor(grain.y * GRID_SIZE);
+    grainsInSquare[row * GRID_SIZE + column] += 1;
+  }
+  const counts = [0, 0, 0, 0];
+  for (const grainCount of grainsInSquare) {
+    counts[Math.min(grainCount, 3)] += 1;
+  }
+  return counts;
+}
+
+// Step 3: the Poisson prediction, for the mean number of grains per square.
+function poissonPrediction(grainCount) {
+  const mean = grainCount / SQUARE_COUNT;
+  const probabilityOf0 = Math.exp(-mean);
+  const probabilityOf1 = probabilityOf0 * mean;
+  const probabilityOf2 = probabilityOf1 * mean / 2;
+  const probabilityOf3OrMore = 1 - probabilityOf0 - probabilityOf1 - probabilityOf2;
+  return [probabilityOf0, probabilityOf1, probabilityOf2, probabilityOf3OrMore]
+    .map(probability => probability * SQUARE_COUNT);
+}
+
+// Step 4: draw the grid and the grains.
+function drawGrid(grains) {
+  const context = gridCanvas.getContext("2d");
+  const size = gridCanvas.width;
+  const squareSize = size / GRID_SIZE;
+  context.clearRect(0, 0, size, size);
+  context.strokeStyle = "#aaa";
+  for (let line = 0; line <= GRID_SIZE; line++) {
+    context.beginPath(); context.moveTo(line * squareSize, 0); context.lineTo(line * squareSize, size); context.stroke();
+    context.beginPath(); context.moveTo(0, line * squareSize); context.lineTo(size, line * squareSize); context.stroke();
+  }
+  context.fillStyle = "#2e8b57";
+  for (const grain of grains) {
+    context.beginPath();
+    context.ellipse(grain.x * size, grain.y * size, 4, 2.5, grain.x * 6, 0, 2 * Math.PI);
+    context.fill();
+  }
+}
+
+// Step 5: draw the bars, counted next to predicted.
+function drawBars(counted, predicted) {
+  const context = barCanvas.getContext("2d");
+  const width = barCanvas.width, height = barCanvas.height;
+  const bottom = height - 24;
+  const largest = Math.max(...counted, ...predicted, 1);
+  const groupWidth = width / CATEGORIES.length;
+  const barWidth = groupWidth * 0.35;
+  context.clearRect(0, 0, width, height);
+  context.font = "16px Georgia, serif";
+  context.textAlign = "center";
+  CATEGORIES.forEach((category, index) => {
+    const left = index * groupWidth + groupWidth * 0.12;
+    const countedHeight = counted[index] / largest * (bottom - 8);
+    const predictedHeight = predicted[index] / largest * (bottom - 8);
+    context.fillStyle = "#2e8b57";
+    context.fillRect(left, bottom - countedHeight, barWidth, countedHeight);
+    context.fillStyle = "#c9a0dc";
+    context.fillRect(left + barWidth + 2, bottom - predictedHeight, barWidth, predictedHeight);
+    context.fillStyle = "#222";
+    context.fillText(category, index * groupWidth + groupWidth / 2, height - 6);
+  });
+}
+
+// Step 6: write the same numbers in the table.
+function fillTable(counted, predicted) {
+  tableBody.innerHTML = "";
+  CATEGORIES.forEach((category, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td>${category}</td><td>${counted[index]}</td><td>${predicted[index].toFixed(1)}</td>`;
+    tableBody.appendChild(row);
+  });
+}
+
+function runExperiment() {
+  const grainCount = Number(grainSlider.value);
+  grainLabel.textContent = grainCount;
+  const grains = clumpBox.checked ? scatterInClumps(grainCount) : scatterIndependent(grainCount);
+  const counted = countSquares(grains);
+  const predicted = poissonPrediction(grainCount);
+  drawGrid(grains);
+  drawBars(counted, predicted);
+  fillTable(counted, predicted);
+}
+
+scatterButton.addEventListener("click", runExperiment);
+grainSlider.addEventListener("input", runExperiment);
+clumpBox.addEventListener("change", runExperiment);
+runExperiment();
+</script>
+</body>
+</html>
