@@ -110,6 +110,7 @@
   h2 { color: var(--orchid); font-weight: normal; font-size: 1.6em; line-height: 1.2; margin: 64px 0 12px; }
   .part { margin-top: 72px; padding-top: 24px; border-top: 2px solid var(--orchid-line); }
   .part > h2 { margin-top: 0; }
+  .part.first { margin-top: 32px; padding-top: 0; border-top: 0; }
   .task h2 { display: flex; align-items: baseline; gap: 14px; }
   .task .number {
     flex: none; display: inline-flex; align-items: center; justify-content: center;
@@ -176,13 +177,13 @@
 <header>
   <h1>Your AI Teaching Kit</h1>
   <p class="byline">Teaching in the AI Era, 6 November 2026. Dr. Irving Gómez Méndez, CMKL University.</p>
-  <p class="promise">Build your own class simulation in seven short tasks. Any free chatbot, no programming. The result is one HTML file that opens in any browser, also on a phone.</p>
+  <p class="promise">The prompts from today, and seven short tasks to build your own class simulation. Any free chatbot, no programming. The result is one HTML file that opens in any browser, also on a phone.</p>
 </header>
 
 <nav class="road" aria-label="Sections of the kit">
   <ul class="sections">
+    <li><a href="#prompts-to-try">Prompts</a></li>
     <li><a href="#tasks">Seven tasks</a></li>
-    <li><a href="#prompts-to-try">More prompts</a></li>
     <li><a href="#skill">Skill</a></li>
     <li><a href="#examples">Examples</a></li>
   </ul>
@@ -199,8 +200,42 @@
 
 <main>
 
-  <div id="tasks">
-  <p class="note" style="margin-top:28px">Work in the same chat from task 2 to task 6. Change the words in <span class="blank">[brackets]</span>.</p>
+  <!-- ===== Prompts to try: the end of stage 1 and stage 2 of the deck ===== -->
+  <section class="part first" id="prompts-to-try">
+    <h2>Prompts to try</h2>
+
+    <h3 class="stage stage-fighting">From 1, Fighting AI: change the assignment</h3>
+    <div class="prompt fighting">
+      <p>I teach [subject] to [grade]. Next month I teach [topic]. My usual assignment is [assignment]. It is easy to fake with AI. Give me three activity ideas where students use something they collect or do themselves. For each idea, say what students do and what they must explain in their own words. Maximum 50 words per idea. My class has [time], [number] students, and [materials].</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+    <div class="prompt fighting">
+      <p>Here is my assignment: [paste it]. How easy is it to fake with AI? How can I change it?</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+    <div class="prompt fighting">
+      <p>What can go wrong if I use you for grading? Give me a list of risks.</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+
+    <h3 class="stage stage-understanding">From 2, Understanding AI: ask the AI itself</h3>
+    <div class="prompt understanding">
+      <p>What is the difference between a chatbot and an AI agent? Answer me as if I were not a programmer.</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+    <div class="prompt understanding">
+      <p>Teach me to use you for lesson planning. What can you not do on my plan? Ask me one question at a time.</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+    <div class="prompt understanding">
+      <p>I saw this claim about AI online: [paste it]. How can I check if it is true?</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+  </section>
+
+  <div class="part" id="tasks">
+  <h2>Seven tasks: build your simulation</h2>
+  <p class="note">Work in the same chat from task 2 to task 6. Change the words in <span class="blank">[brackets]</span>.</p>
 
   <!-- ===== Task 1 ===== -->
   <section class="task" id="task-1">
@@ -277,38 +312,6 @@
   </section>
   </div><!-- end of #tasks -->
 
-  <!-- ===== Prompts to try: the end of stage 1 and stage 2 of the deck ===== -->
-  <section class="part" id="prompts-to-try">
-    <h2>More prompts to try</h2>
-
-    <h3 class="stage stage-fighting">From 1, Fighting AI: change the assignment</h3>
-    <div class="prompt fighting">
-      <p>I teach [subject] to [grade]. Next month I teach [topic]. My usual assignment is [assignment]. It is easy to fake with AI. Give me three activity ideas where students use something they collect or do themselves. For each idea, say what students do and what they must explain in their own words. Maximum 50 words per idea. My class has [time], [number] students, and [materials].</p>
-      <button class="copy" type="button">Copy</button>
-    </div>
-    <div class="prompt fighting">
-      <p>Here is my assignment: [paste it]. How easy is it to fake with AI? How can I change it?</p>
-      <button class="copy" type="button">Copy</button>
-    </div>
-    <div class="prompt fighting">
-      <p>What can go wrong if I use you for grading? Give me a list of risks.</p>
-      <button class="copy" type="button">Copy</button>
-    </div>
-
-    <h3 class="stage stage-understanding">From 2, Understanding AI: ask the AI itself</h3>
-    <div class="prompt understanding">
-      <p>What is the difference between a chatbot and an AI agent? Answer me as if I were not a programmer.</p>
-      <button class="copy" type="button">Copy</button>
-    </div>
-    <div class="prompt understanding">
-      <p>Teach me to use you for lesson planning. What can you not do on my plan? Ask me one question at a time.</p>
-      <button class="copy" type="button">Copy</button>
-    </div>
-    <div class="prompt understanding">
-      <p>I saw this claim about AI online: [paste it]. How can I check if it is true?</p>
-      <button class="copy" type="button">Copy</button>
-    </div>
-  </section>
 
   <!-- ===== The skill (slides 54-56) ===== -->
   <section class="part" id="skill">
@@ -358,7 +361,7 @@
     </article>
 
     <article class="example">
-      <a href="examples/rice-on-a-grid.html"><img src="images/rice-on-a-grid.png" alt="Rice on a Grid: grains of rice scattered over a 10 by 10 grid, with a Scatter the rice button." width="880" height="560" loading="lazy"></a>
+      <a href="examples/rice-on-a-grid.html"><img src="images/rice-on-a-grid.png" alt="Rice on a Grid: white rice grains on a dark 10 by 10 grid, empty squares shaded, next to a bar chart of the counts and the Poisson prediction." width="980" height="730" loading="lazy"></a>
       <h3><a href="examples/rice-on-a-grid.html">Rice on a Grid</a></h3>
       <p>Scatter 100 grains on 100 squares. Why are so many squares empty? The Poisson distribution.</p>
     </article>
