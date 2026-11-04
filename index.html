@@ -1,44 +1,436 @@
 <!DOCTYPE html>
+<!--
+  YOUR AI TEACHING KIT
+  The take-home page of "Teaching in the AI Era" (6 November 2026).
+  One file, no external libraries: it works offline, like the simulations it teaches.
+  The seven tasks follow slides 46-53 of the deck; the skill steps follow slides 54-56.
+-->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Your AI Teaching Kit</title>
 <style>
-  body { font-family: Georgia, serif; font-size: 1.15em; margin: 0 auto; padding: 16px; max-width: 640px; color: #222; background: #fff; }
-  h1 { color: #68228b; font-size: 1.6em; }
-  h2 { color: #68228b; font-size: 1.2em; margin-top: 1.4em; }
-  li { margin: 8px 0; }
+  /* ===== Colors: the same purple as the slides (DarkOrchid4) ===== */
+  :root {
+    --paper: #fdfcfe;
+    --ink: #221a29;
+    --muted: #5e5566;
+    --orchid: #68228b;
+    --orchid-line: #b07cc9;
+    --prompt-paper: #f3ebf8;
+    --rule: #e4dbe9;
+    --fighting: #b00e66;       /* DeepPink3, a little darker for text contrast */
+    --understanding: #a85200;  /* DarkOrange3, a little darker for text contrast */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #17131b;
+      --ink: #ece6f0;
+      --muted: #b3a8ba;
+      --orchid: #d6a6f0;
+      --orchid-line: #7d4a99;
+      --prompt-paper: #261d2e;
+      --rule: #342a3b;
+      --fighting: #f27ab8;
+      --understanding: #f0a35e;
+    }
+  }
+
+  /* ===== Page ===== */
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 116px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, "URW Palladio L", serif;
+    font-size: 19px;
+    line-height: 1.6;
+  }
+  main { max-width: 680px; margin: 0 auto; padding: 0 16px 64px; }
+  a { color: var(--orchid); }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--orchid); outline-offset: 2px; }
+  img { max-width: 100%; height: auto; display: block; }
+
+  /* ===== Header ===== */
+  header { max-width: 680px; margin: 0 auto; padding: 40px 16px 8px; }
+  h1 { color: var(--orchid); font-size: 2.3em; line-height: 1.1; margin: 0 0 12px; font-weight: normal; }
+  .byline { color: var(--muted); margin: 0 0 20px; }
+  .promise { font-size: 1.1em; margin: 0; }
+
+  /* ===== The road: the seven tasks, always on screen (the deck's progress strip) ===== */
+  .road {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+  }
+  /* Top row: the four parts of the kit */
+  .road .sections {
+    list-style: none; margin: 0 auto; padding: 8px 16px 6px;
+    max-width: 680px;
+    display: flex; flex-wrap: wrap; gap: 4px 18px;
+  }
+  .road .sections a {
+    color: var(--muted); text-decoration: none;
+    font-size: 0.9em; padding: 2px 0;
+    border-bottom: 2px solid transparent;
+  }
+  .road .sections a.here { color: var(--orchid); border-bottom-color: var(--orchid); }
+
+  /* Second row: the seven tasks, shown only while reading them */
+  .road .tasks-strip {
+    list-style: none; margin: 0 auto; padding: 4px 16px 10px;
+    max-width: 680px;
+    display: none; justify-content: space-between;
+    position: relative;
+  }
+  .road.in-tasks .tasks-strip { display: flex; }
+  .road .tasks-strip::before {          /* the line that joins the stops */
+    content: ""; position: absolute; left: 32px; right: 32px; top: 50%;
+    border-top: 2px solid var(--orchid-line);
+  }
+  .road .tasks-strip a {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--paper); color: var(--orchid);
+    border: 2px solid var(--orchid-line);
+    text-decoration: none; font-size: 1.05em;
+  }
+  .road .tasks-strip a.here { background: var(--orchid); color: var(--paper); border-color: var(--orchid); }
+  .road .label { display: none; }
+  @media (min-width: 720px) {
+    .road .tasks-strip a { width: auto; height: auto; border-radius: 20px; padding: 2px 10px; font-size: 0.8em; }
+    .road .label { display: inline; margin-left: 4px; }
+  }
+
+  /* ===== Sections ===== */
+  h2 { color: var(--orchid); font-weight: normal; font-size: 1.6em; line-height: 1.2; margin: 64px 0 12px; }
+  .part { margin-top: 72px; padding-top: 24px; border-top: 2px solid var(--orchid-line); }
+  .part > h2 { margin-top: 0; }
+  .task h2 { display: flex; align-items: baseline; gap: 14px; }
+  .task .number {
+    flex: none; display: inline-flex; align-items: center; justify-content: center;
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--orchid); color: var(--paper); font-size: 0.85em;
+    transform: translateY(6px);
+  }
+  ol.steps, ul.plain { padding-left: 1.3em; }
+  ol.steps li, ul.plain li { margin: 6px 0; }
+  .note { color: var(--muted); font-size: 0.92em; }
+
+  /* ===== Prompts: what teachers copy ===== */
+  .prompt {
+    position: relative;
+    background: var(--prompt-paper);
+    border-left: 4px solid var(--orchid);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 16px 14px 18px;
+    margin: 16px 0;
+  }
+  .prompt p { margin: 0 0 12px; }
+  .prompt .when { color: var(--muted); font-size: 0.9em; margin-bottom: 4px; }
+  .copy {
+    font: inherit; font-size: 0.85em;
+    color: var(--paper); background: var(--orchid);
+    border: 0; border-radius: 6px; padding: 6px 16px; cursor: pointer;
+  }
+  .copy.done { background: var(--muted); }
+  .blank { color: var(--orchid); font-style: italic; }
+
+  /* ===== Prompts from the other stages keep the deck's stage colors ===== */
+  h3.stage { font-weight: normal; font-size: 1.2em; margin: 36px 0 8px; }
+  .stage-fighting { color: var(--fighting); }
+  .stage-understanding { color: var(--understanding); }
+  .prompt.fighting { border-left-color: var(--fighting); }
+  .prompt.understanding { border-left-color: var(--understanding); }
+  .prompt.fighting .copy { background: var(--fighting); }
+  .prompt.understanding .copy { background: var(--understanding); }
+
+  /* ===== Pictures ===== */
+  figure { margin: 20px 0; }
+  figure img { border: 1px solid var(--rule); border-radius: 6px; }
+  figcaption { color: var(--muted); font-size: 0.9em; margin-top: 6px; }
+  .side-by-side { display: flex; gap: 20px; align-items: flex-start; }
+  .side-by-side img { width: 150px; }
+  @media (max-width: 480px) { .side-by-side { flex-direction: column; } }
+
+  .download {
+    display: inline-block; margin: 8px 0;
+    color: var(--paper); background: var(--orchid);
+    padding: 10px 20px; border-radius: 8px; text-decoration: none;
+  }
+
+  /* ===== Examples ===== */
+  .example { margin: 28px 0; }
+  .example h3 { font-weight: normal; font-size: 1.2em; margin: 10px 0 2px; }
+  .example p { margin: 0; }
+
+  footer { max-width: 680px; margin: 0 auto; padding: 24px 16px 48px; color: var(--muted); font-size: 0.9em; border-top: 1px solid var(--rule); }
 </style>
 </head>
 <body>
-<h1>Your AI Teaching Kit</h1>
-<p>Teaching in the AI Era, 6 November 2026. Dr. Irving Gómez Méndez.</p>
 
-<h2>Build</h2>
-<ul>
-  <li><a href="prompts.txt">Prompts</a></li>
-  <li><a href="recipe.txt">Prompt recipe and how to save the file</a></li>
-  <li><a href="check_list.txt">Check before class</a></li>
-</ul>
+<header>
+  <h1>Your AI Teaching Kit</h1>
+  <p class="byline">Teaching in the AI Era, 6 November 2026. Dr. Irving Gómez Méndez, CMKL University.</p>
+  <p class="promise">Build your own class simulation in seven short tasks. Any free chatbot, no programming. The result is one HTML file that opens in any browser, also on a phone.</p>
+</header>
 
-<h2>Next time: skip the prompts (optional)</h2>
-<ul>
-  <li><a href="simulation-builder.zip">Simulation-builder skill for Claude (ZIP, do not unzip)</a></li>
-  <li><a href="install_skill.txt">How to install the skill on a free claude.ai account</a></li>
-</ul>
+<nav class="road" aria-label="Sections of the kit">
+  <ul class="sections">
+    <li><a href="#tasks">Seven tasks</a></li>
+    <li><a href="#prompts-to-try">More prompts</a></li>
+    <li><a href="#skill">Skill</a></li>
+    <li><a href="#examples">Examples</a></li>
+  </ul>
+  <ol class="tasks-strip" aria-label="The seven tasks">
+    <li><a href="#task-1">1<span class="label">Topic</span></a></li>
+    <li><a href="#task-2">2<span class="label">Ideas</span></a></li>
+    <li><a href="#task-3">3<span class="label">Plan</span></a></li>
+    <li><a href="#task-4">4<span class="label">HTML</span></a></li>
+    <li><a href="#task-5">5<span class="label">Save</span></a></li>
+    <li><a href="#task-6">6<span class="label">Test</span></a></li>
+    <li><a href="#task-7">7<span class="label">Swap</span></a></li>
+  </ol>
+</nav>
 
-<h2>Examples</h2>
-<ul>
-  <li><a href="examples/body-defense.html">Body Defense: the immune system</a></li>
-  <li><a href="examples/harty-maze-builder.html">Harty's Maze: reinforcement learning</a></li>
-  <li><a href="examples/rice-on-a-grid.html">Rice on a Grid: the Poisson distribution</a></li>
-</ul>
+<main>
 
-<h2>Reference</h2>
-<ul>
-  <li><a href="https://gizmos.explorelearning.com/">Gizmos: online simulations for math and science</a></li>
-  <li><a href="teaching_in_the_ai_era_slides.pdf">Slides</a></li>
-</ul>
+  <div id="tasks">
+  <p class="note" style="margin-top:28px">Work in the same chat from task 2 to task 6. Change the words in <span class="blank">[brackets]</span>.</p>
+
+  <!-- ===== Task 1 ===== -->
+  <section class="task" id="task-1">
+    <h2><span class="number">1</span>Choose a topic</h2>
+    <p>Choose something you teach next month.</p>
+    <p>No idea yet? Try a pendulum, dice averages, projectile motion, or supply and demand.</p>
+  </section>
+
+  <!-- ===== Task 2 ===== -->
+  <section class="task" id="task-2">
+    <h2><span class="number">2</span>Ask AI for ideas</h2>
+    <div class="prompt">
+      <p>I teach [topic] to grade [N]. Give me three simulation activities. 30 words each.</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+    <p>Choose one of the three.</p>
+  </section>
+
+  <!-- ===== Task 3 ===== -->
+  <section class="task" id="task-3">
+    <h2><span class="number">3</span>Plan the screen</h2>
+    <p>Before you ask for code, decide what the student sees. Answer these three questions for the idea you chose, and write your answers in the chat.</p>
+    <ol class="steps">
+      <li>What does the student change?</li>
+      <li>What moves on screen?</li>
+      <li>What should the student notice?</li>
+    </ol>
+    <p class="note">Example, a pendulum: the student changes the length. The pendulum swings. A longer pendulum swings slower.</p>
+  </section>
+
+  <!-- ===== Task 4 ===== -->
+  <section class="task" id="task-4">
+    <h2><span class="number">4</span>Ask for the HTML</h2>
+    <div class="prompt">
+      <p>Build this as one HTML file. No external libraries. No internet. Works on a phone.</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+  </section>
+
+  <!-- ===== Task 5 ===== -->
+  <section class="task" id="task-5">
+    <h2><span class="number">5</span>Save and open</h2>
+    <ol class="steps">
+      <li>Copy the code from the chat.</li>
+      <li>Paste it into Notepad (Windows) or TextEdit (Mac).</li>
+      <li>Save it as <strong>lesson.html</strong>.</li>
+      <li>Double-click the file. It opens in your browser.</li>
+    </ol>
+    <p class="note">Windows Notepad: in "Save as type", choose "All files", or the name ends in .txt.<br>
+      Mac TextEdit: choose Format, then Make Plain Text, before you save.<br>
+      Some chatbots have a download button. That works too.</p>
+  </section>
+
+  <!-- ===== Task 6 ===== -->
+  <section class="task" id="task-6">
+    <h2><span class="number">6</span>Test and fix</h2>
+    <p>Test one case where you know the answer. AI makes mistakes; you check.</p>
+    <div class="prompt">
+      <p class="when">Something is wrong:</p>
+      <p>Fix only this: [problem]. Keep the rest. Give me the whole file.</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+    <div class="prompt">
+      <p class="when">The code stops in the middle:</p>
+      <p>Continue the file from where you stopped.</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+  </section>
+
+  <!-- ===== Task 7 ===== -->
+  <section class="task" id="task-7">
+    <h2><span class="number">7</span>Swap</h2>
+    <p>Swap laptops with the next pair. Play with their simulation. Say what you noticed.</p>
+  </section>
+  </div><!-- end of #tasks -->
+
+  <!-- ===== Prompts to try: the end of stage 1 and stage 2 of the deck ===== -->
+  <section class="part" id="prompts-to-try">
+    <h2>More prompts to try</h2>
+
+    <h3 class="stage stage-fighting">From 1, Fighting AI: change the assignment</h3>
+    <div class="prompt fighting">
+      <p>I teach [subject] to [grade]. Next month I teach [topic]. My usual assignment is [assignment]. It is easy to fake with AI. Give me three activity ideas where students use something they collect or do themselves. For each idea, say what students do and what they must explain in their own words. Maximum 50 words per idea. My class has [time], [number] students, and [materials].</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+    <div class="prompt fighting">
+      <p>Here is my assignment: [paste it]. How easy is it to fake with AI? How can I change it?</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+    <div class="prompt fighting">
+      <p>What can go wrong if I use you for grading? Give me a list of risks.</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+
+    <h3 class="stage stage-understanding">From 2, Understanding AI: ask the AI itself</h3>
+    <div class="prompt understanding">
+      <p>What is the difference between a chatbot and an AI agent? Answer me as if I were not a programmer.</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+    <div class="prompt understanding">
+      <p>Teach me to use you for lesson planning. What can you not do on my plan? Ask me one question at a time.</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+    <div class="prompt understanding">
+      <p>I saw this claim about AI online: [paste it]. How can I check if it is true?</p>
+      <button class="copy" type="button">Copy</button>
+    </div>
+  </section>
+
+  <!-- ===== The skill (slides 54-56) ===== -->
+  <section class="part" id="skill">
+    <h2>Next time, skip the prompts</h2>
+    <p>The simulation-builder skill teaches Claude these seven tasks. Claude then asks you the questions one at a time, writes the HTML and checks it. It works on a free claude.ai account. It is optional: the prompts above work in any chatbot.</p>
+    <a class="download" href="simulation-builder.zip" download>Download the skill (ZIP)</a>
+    <p class="note">Do not unzip it.</p>
+
+    <h3 style="font-weight:normal;font-size:1.2em;margin-top:32px">Once: turn on code execution</h3>
+    <p>In claude.ai, go to Settings, then Capabilities, and turn on code execution ("Create and edit files"). Skills need it.</p>
+
+    <h3 style="font-weight:normal;font-size:1.2em;margin-top:32px">Once: upload the skill</h3>
+    <figure>
+      <img src="images/skill_1.png" alt="The Customize page in Claude, with the Add menu open and Upload skill at the top." width="1230" height="400" loading="lazy">
+      <figcaption>Go to Customize, then Skills. Press + Add, then Upload skill.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/skill_2.png" alt="The Upload a skill page, with a box to drop the skill file." width="1240" height="580" loading="lazy">
+      <figcaption>Choose simulation-builder.zip and press Upload.</figcaption>
+    </figure>
+
+    <h3 style="font-weight:normal;font-size:1.2em;margin-top:32px">Every time</h3>
+    <div class="side-by-side">
+      <img src="images/skill_3.png" alt="The menu that opens when you type a slash in a new chat, with simulation-builder in the list." width="300" height="600" loading="lazy">
+      <div>
+        <p style="margin-top:0">In a new chat, type <strong>/</strong> and choose <strong>simulation-builder</strong>. Or just write: "Help me build a simulation for my class."</p>
+        <p class="note">Not working? Check that code execution is on, and that the skill is turned on in Customize, then Skills. You can always use the prompts above.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Examples ===== -->
+  <section class="part" id="examples">
+    <h2>Examples built with AI</h2>
+    <p>Open them in your browser. Each one is a single HTML file: save it and it works offline.</p>
+
+    <article class="example">
+      <a href="examples/body-defense.html"><img src="images/body-defense.png" alt="Body Defense: cells under the skin, a graph of germs and antibodies, and an Infect button." width="1280" height="800" loading="lazy"></a>
+      <h3><a href="examples/body-defense.html">Body Defense</a></h3>
+      <p>The immune system fights germs that get in through a cut, then remembers them.</p>
+    </article>
+
+    <article class="example">
+      <a href="examples/harty-maze-builder.html"><img src="images/harty-maze-builder.png" alt="Harty's Maze: a fox named Harty next to a treasure chest, over a maze grid." width="1280" height="800" loading="lazy"></a>
+      <h3><a href="examples/harty-maze-builder.html">Harty's Maze</a></h3>
+      <p>Build a maze, and Harty learns his way to the treasure: reinforcement learning. By Khant Phyo Wai.</p>
+    </article>
+
+    <article class="example">
+      <a href="examples/rice-on-a-grid.html"><img src="images/rice-on-a-grid.png" alt="Rice on a Grid: grains of rice scattered over a 10 by 10 grid, with a Scatter the rice button." width="880" height="560" loading="lazy"></a>
+      <h3><a href="examples/rice-on-a-grid.html">Rice on a Grid</a></h3>
+      <p>Scatter 100 grains on 100 squares. Why are so many squares empty? The Poisson distribution.</p>
+    </article>
+  </section>
+
+  <section class="part" id="more">
+    <h2>More</h2>
+    <ul class="plain">
+      <li><a href="teaching_in_the_ai_era_slides.pdf">The slides of today (PDF)</a></li>
+      <li><a href="https://gizmos.explorelearning.com/">Gizmos</a>: ready-made online simulations for math and science.</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  Dr. Irving Gómez Méndez, CMKL University. Teaching in the AI Era, CMKL University and Sustainability Expo 2026.
+</footer>
+
+<script>
+  // ===== Copy buttons: copy the prompt text above each button =====
+  for (const button of document.querySelectorAll(".copy")) {
+    button.addEventListener("click", async () => {
+      const promptBox = button.closest(".prompt");
+      const promptText = [...promptBox.querySelectorAll("p:not(.when)")]
+        .map(paragraph => paragraph.innerText.trim())
+        .join("\n");
+      try {
+        await navigator.clipboard.writeText(promptText);
+      } catch (error) {
+        // Older browsers, or a page opened from a file: select the text so the teacher can copy it by hand.
+        const range = document.createRange();
+        range.selectNodeContents(promptBox.querySelector("p:not(.when)"));
+        getSelection().removeAllRanges();
+        getSelection().addRange(range);
+        button.textContent = "Selected: press Ctrl+C";
+        return;
+      }
+      button.textContent = "Copied";
+      button.classList.add("done");
+      setTimeout(() => { button.textContent = "Copy"; button.classList.remove("done"); }, 2000);
+    });
+  }
+
+  // ===== The top bar: light up the part and the task you are reading =====
+  // A section counts as "being read" when it crosses a thin band near the middle of the screen.
+  const road = document.querySelector(".road");
+  const readingBand = { rootMargin: "-40% 0px -55% 0px" };
+
+  function lightUp(links, id) {
+    for (const link of links) {
+      link.classList.toggle("here", link.getAttribute("href") === "#" + id);
+    }
+  }
+
+  const partLinks = document.querySelectorAll(".road .sections a");
+  const partObserver = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      lightUp(partLinks, entry.target.id);
+      road.classList.toggle("in-tasks", entry.target.id === "tasks");  // show the 1-7 strip only here
+    }
+  }, readingBand);
+  ["tasks", "prompts-to-try", "skill", "examples", "more"].forEach(id => partObserver.observe(document.getElementById(id)));
+
+  const taskLinks = document.querySelectorAll(".road .tasks-strip a");
+  const taskObserver = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) lightUp(taskLinks, entry.target.id);
+    }
+  }, readingBand);
+  document.querySelectorAll(".task").forEach(section => taskObserver.observe(section));
+</script>
 </body>
 </html>
