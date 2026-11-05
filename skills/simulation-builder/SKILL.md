@@ -59,6 +59,7 @@ and give the whole file again.
 
 If the file is too long, make a smaller version with one slider and one result.
 
-## Step 7. Swap
-Suggest the teacher swap with a colleague: each plays the other's
-simulation and says what they noticed.
+## Step 7. Post
+Suggest the teacher post the HTML file on a shared board (for example,
+the workshop's Padlet board) or send it to a colleague. Then they open
+the others' simulations and say what they noticed.
